@@ -48,3 +48,24 @@ func (m *Matrix) decode(r io.Reader, h *Header) (err error) {
 	m.Content = make([]color.RGBA, m.Size.X*m.Size.Y*m.Size.Z)
 	return h.CompressionMethod.decodeMatrix(m, r, h)
 }
+
+func (m *Matrix) encode(w io.Writer, h *Header) (err error) {
+	//Write name
+	if _, err = w.Write([]byte{byte(len(m.Name))}); err != nil {
+		return
+	}
+	if _, err = w.Write([]byte(m.Name)); err != nil {
+		return
+	}
+
+	//Write size and position
+	if err = binary.Write(w, qbEndian, m.Size); err != nil {
+		return
+	}
+	if err = binary.Write(w, qbEndian, m.Position); err != nil {
+		return
+	}
+
+	//Write contents
+	return h.CompressionMethod.encodeMatrix(m, w, h)
+}

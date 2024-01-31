@@ -38,3 +38,10 @@ func (h *Header) decodeHeader(r io.Reader) error {
 	}
 	return h.validate()
 }
+
+func (h *Header) encodeHeader(w io.Writer) (err error) {
+	if err = h.validate(); err != nil {
+		return
+	}
+	return binary.Write(w, qbEndian, *h)
+}
