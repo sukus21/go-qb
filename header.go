@@ -1,5 +1,10 @@
 package qb
 
+import (
+	"encoding/binary"
+	"io"
+)
+
 type Header struct {
 	Version
 	ColorFormat
@@ -25,4 +30,11 @@ func (h *Header) validate() (err error) {
 		return
 	}
 	return nil
+}
+
+func (h *Header) decodeHeader(r io.Reader) error {
+	if err := binary.Read(r, qbEndian, h); err != nil {
+		return err
+	}
+	return h.validate()
 }

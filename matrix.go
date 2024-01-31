@@ -1,7 +1,10 @@
 package qb
 
 import (
+	"encoding/binary"
 	"fmt"
+	"image/color"
+	"io"
 )
 
 type Matrix struct {
@@ -19,4 +22,29 @@ func (m *Matrix) validate() error {
 		return fmt.Errorf("go-qb: matrix contents do not match its size")
 	}
 	return nil
+}
+
+func (m *Matrix) decode(r io.Reader, h *Header) (err error) {
+	//Read name
+	buf := [255]byte{}
+	if _, err = r.Read(buf[:1]); err != nil {
+		return
+	}
+	strBuf := buf[:buf[0]]
+	if _, err = r.Read(strBuf); err != nil {
+		return
+	}
+	m.Name = string(strBuf)
+
+	//Read size and position
+	if err = binary.Read(r, qbEndian, &m.Size); err != nil {
+		return
+	}
+	if err = binary.Read(r, qbEndian, &m.Position); err != nil {
+		return
+	}
+
+	//Read contents
+	m.Content = make([]color.RGBA, m.Size.X*m.Size.Y*m.Size.Z)
+	return h.CompressionMethod.decodeMatrix(m, r, h)
 }

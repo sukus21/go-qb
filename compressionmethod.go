@@ -2,6 +2,7 @@ package qb
 
 import (
 	"fmt"
+	"io"
 )
 
 type CompressionMethod uint32
@@ -16,4 +17,23 @@ func (c CompressionMethod) validate() error {
 		return fmt.Errorf("go-qb: unknown compression method '%d'", c)
 	}
 	return nil
+}
+
+func (c CompressionMethod) decodeMatrix(m *Matrix, r io.Reader, header *Header) (err error) {
+	//No compression
+	if c == CompressionMethod_none {
+		for i := range m.Content {
+			if err = header.ColorFormat.decodeColor(r, header.VisibilityMaskEncoding, &m.Content[i]); err != nil {
+				return
+			}
+		}
+	}
+
+	//RLE compression
+	if c == CompressionMethod_rle {
+		return decodeRle(m, r, header)
+	}
+
+	//unreachable
+	return
 }
