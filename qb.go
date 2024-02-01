@@ -15,5 +15,5 @@ type QbModel struct {
 }
 
 type Vec3 struct {
-	X, Y, Z uint32
+	X, Y, Z int32
 }

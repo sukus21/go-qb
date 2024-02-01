@@ -34,8 +34,8 @@ func Decode(r io.Reader) (out *QbModel, err error) {
 func decodeRle(m *Matrix, r io.Reader, header *Header) (err error) {
 	buf := [8]byte{}
 
-	for z := uint32(0); z < m.Size.Z; z++ {
-		index := z * m.Size.X * m.Size.Y
+	for z := uint32(0); z < uint32(m.Size.Z); z++ {
+		index := z * uint32(m.Size.X*m.Size.Y)
 		for {
 			//Read instruction
 			data := uint32(0)

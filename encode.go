@@ -35,8 +35,8 @@ func Encode(w io.Writer, in *QbModel) (err error) {
 }
 
 func encodeRle(m *Matrix, w io.Writer, header *Header) (err error) {
-	sliceSize := m.Size.X * m.Size.Y
-	for z := uint32(0); z < m.Size.Z; z++ {
+	sliceSize := uint32(m.Size.X * m.Size.Y)
+	for z := uint32(0); z < uint32(m.Size.Z); z++ {
 		index := z * sliceSize
 		slice := m.Content[index : index+sliceSize]
 
