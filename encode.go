@@ -5,27 +5,34 @@ import (
 	"io"
 )
 
-func Encode(w io.Writer, in *QbModel) (err error) {
-	//Validate matrices
-	for i := range in.Matrices {
-		if err = in.Matrices[i].validate(); err != nil {
-			return
+func decomposeStitch(voxel VoxelGrid) (out []VoxelGrid) {
+	if stitch, ok := voxel.(VoxelStitch); ok {
+		for _, part := range stitch.Parts() {
+			out = append(out, decomposeStitch(part)...)
 		}
+	} else {
+		out = []VoxelGrid{voxel}
 	}
+	return
+}
+
+func Encode(w io.Writer, in VoxelGrid, settings *Header) (err error) {
+	//Break model into its pieces
+	models := decomposeStitch(in)
 
 	//Encode header
-	if err = in.encodeHeader(w); err != nil {
+	if err = settings.encodeHeader(w); err != nil {
 		return
 	}
 
 	//Encode matrix count
-	if err = binary.Write(w, qbEndian, uint32(len(in.Matrices))); err != nil {
+	if err = binary.Write(w, qbEndian, uint32(len(models))); err != nil {
 		return
 	}
 
 	//Encode matrices
-	for i := range in.Matrices {
-		if err = in.Matrices[i].encode(w, &in.Header); err != nil {
+	for i := range models {
+		if err = in.Matrices[i].encode(w, settings); err != nil {
 			return
 		}
 	}

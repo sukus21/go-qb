@@ -23,7 +23,8 @@ func (c CompressionMethod) decodeMatrix(m *Matrix, r io.Reader, header *Header) 
 	//No compression
 	if c == CompressionMethod_none {
 		for i := range m.Content {
-			if err = header.ColorFormat.decodeColor(r, header.VisibilityMaskEncoding, &m.Content[i]); err != nil {
+			err = header.ColorFormat.decodeColor(r, header.VisibilityMaskEncoding, &m.Content[i])
+			if err != nil {
 				return
 			}
 		}

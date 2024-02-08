@@ -69,3 +69,52 @@ func (m *Matrix) encode(w io.Writer, h *Header) (err error) {
 	//Write contents
 	return h.CompressionMethod.encodeMatrix(m, w, h)
 }
+
+func (m *Matrix) pointWithin(x, y, z int32) bool {
+	return m.Bounds().Contains(Point{X: int(x), Y: int(y), Z: int(z)})
+}
+
+func (m *Matrix) getIndex(x, y, z int) int {
+	index := int32(x) - m.Position.X
+	index += (int32(y) - m.Position.Y) * m.Size.X
+	index += (int32(z) - m.Position.Z) * m.Size.X * m.Size.Y
+	return int(index)
+}
+
+func (m *Matrix) ColorModel() color.Model {
+	return color.RGBAModel
+}
+
+func (m *Matrix) Bounds() Cube {
+	return Cube{
+		Min: m.Position.Point(),
+		Max: Point{
+			X: int(m.Position.X + m.Size.X),
+			Y: int(m.Position.Y + m.Size.Y),
+			Z: int(m.Position.Z + m.Size.Z),
+		},
+	}
+}
+
+func (m *Matrix) Get(x, y, z int) color.Color {
+	if !m.pointWithin(int32(x), int32(y), int32(z)) {
+		return color.Transparent
+	}
+
+	return m.Content[m.getIndex(x, y, z)]
+}
+
+func (m *Matrix) Set(x, y, z int, c color.Color) {
+	if !m.pointWithin(int32(x), int32(y), int32(z)) {
+		return
+	}
+
+	//Flatten color to RGBA
+	r, g, b, a := c.RGBA()
+	m.Content[m.getIndex(x, y, z)] = color.RGBA{
+		R: uint8(r >> 8),
+		G: uint8(g >> 8),
+		B: uint8(b >> 8),
+		A: uint8(a >> 8),
+	}
+}
